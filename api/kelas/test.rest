@@ -1,0 +1,22 @@
+@baseurl = http://localhost:3000
+GET {{baseurl}}/api/kelas HTTP/1.1
+
+###
+POST {{baseurl}}/api/kelas HTTP/1.1
+Content-Type: application/json
+
+{
+  "kelasName" : "Idad"
+}
+###
+GET {{baseurl}}/api/kelas/1 HTTP/1.1
+
+###
+PUT {{baseurl}}/api/kelas/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "kelasName": "Dirosah 1"
+}
+###
+DELETE {{baseurl}}/api/kelas/1 HTTP/1.1
