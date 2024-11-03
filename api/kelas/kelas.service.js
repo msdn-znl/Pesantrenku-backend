@@ -11,19 +11,21 @@ const getById = async (kelasId) => {
     return kelas
 }
 const create = async (kelasData) => {
-    const kelas = await knex('kelas').insert(kelasData)
+    const kelas = await knex('kelas').insert({
+        kelasName:kelasData
+    })
     return kelas
 }
 const update = async (kelasId, kelasData) => {
     const kelas = await knex('kelas').where('id', kelasId).update({
-        kelasName: kelasData.kelasName,
+        kelasName: kelasData,
         updatedAt: knex.fn.now(6)
     })
     return kelas
 }
 const remove = async (kelasId) => {
     const kelas = await knex('kelas').where('id', kelasId).del()
-    if(!kelas==0){
+    if(kelas !== 0){
         return true
     }else{
         return false

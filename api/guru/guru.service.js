@@ -16,14 +16,14 @@ const create = async (guruData) => {
 }
 const update = async (guruId, guruData) => {
     const guru = await knex('guru').where('id', guruId).update({
-        guruName: guruData.guruName,
+        guruName: guruData,
         updatedAt: knex.fn.now(6)
     })
     return guru
 }
 const remove = async (guruId) => {
     const guru = await knex('guru').where('id', guruId).del()
-    if(!guru==0){
+    if(guru !== 0){
         return true
     }else{
         return false

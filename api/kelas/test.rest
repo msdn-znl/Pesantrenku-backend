@@ -6,7 +6,7 @@ POST {{baseurl}}/api/kelas HTTP/1.1
 Content-Type: application/json
 
 {
-  "kelasName" : "Idad"
+  "kelasName" : "Buhuts"
 }
 ###
 GET {{baseurl}}/api/kelas/1 HTTP/1.1

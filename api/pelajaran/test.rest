@@ -1,0 +1,26 @@
+@baseurl = http://localhost:3000
+GET {{baseurl}}/api/pelajaran HTTP/1.1
+
+###
+POST {{baseurl}}/api/pelajaran HTTP/1.1
+Content-Type: application/json
+
+[
+  {"pelajaranName":"Bulugh Marom","kelasId":"2"},
+  {"pelajaranName":"Tafsir Munir","kelasId":"4"},
+  {"pelajaranName":"Mutamimah","kelasId":"2"}
+]
+
+###
+GET {{baseurl}}/api/pelajaran/1 HTTP/1.1
+
+###
+PUT {{baseurl}}/api/pelajaran/2 HTTP/1.1
+Content-Type: application/json
+
+{
+  "pelajaranName": "Tafsir Munir",
+  "kelasId" : 2
+}
+###
+DELETE {{baseurl}}/api/pelajaran/8 HTTP/1.1

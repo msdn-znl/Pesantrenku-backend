@@ -10,20 +10,26 @@ const getById = async (pelajaranId) => {
     const pelajaran = await knex('pelajaran').where('id', pelajaranId)
     return pelajaran
 }
-const create = async (pelajaranData) => {
-    const pelajaran = await knex('pelajaran').insert(pelajaranData)
+const create = async (pelajaranData, kelasId) => {
+    const pelajaran = await knex('pelajaran').insert({
+        pelajaranName: pelajaranData,
+        kelas_id: kelasId
+    })
     return pelajaran
 }
-const update = async (pelajaranId, pelajaranData) => {
+const update = async (pelajaranId, pelajaranData, kelasId) => {
     const pelajaran = await knex('pelajaran').where('id', pelajaranId).update({
-        pelajaranName: pelajaranData.pelajaranName,
+        pelajaranName: pelajaranData,
+        kelas_id : kelasId,
         updatedAt: knex.fn.now(6)
     })
     return pelajaran
 }
 const remove = async (pelajaranId) => {
     const pelajaran = await knex('pelajaran').where('id', pelajaranId).del()
-    if(!pelajaran==0){
+    console.log(pelajaran)
+    console.log(pelajaran==0)
+    if(pelajaran !== 0){
         return true
     }else{
         return false

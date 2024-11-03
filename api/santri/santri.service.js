@@ -10,20 +10,24 @@ const getById = async (santriId) => {
     const santri = await knex('santri').where('id', santriId)
     return santri
 }
-const create = async (santriData) => {
-    const santri = await knex('santri').insert(santriData)
+const create = async (santriName, kelasId) => {
+    const santri = await knex('santri').insert({
+        santriName:santriName,
+        kelas_id:kelasId
+      })
     return santri
 }
-const update = async (santriId, santriData) => {
+const update = async (santriId, santriData, kelasId) => {
     const santri = await knex('santri').where('id', santriId).update({
-        santriName: santriData.santriName,
+        santriName: santriData,
+        kelas_id: kelasId,
         updatedAt: knex.fn.now(6)
     })
     return santri
 }
 const remove = async (santriId) => {
     const santri = await knex('santri').where('id', santriId).del()
-    if(!santri==0){
+    if(santri !== 0){
         return true
     }else{
         return false

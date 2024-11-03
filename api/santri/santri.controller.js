@@ -22,11 +22,8 @@ const getSantriById = async(req, res, next) =>{
 }
 const createSantri = async(req, res, next) => {
   try{
-    const {santriName} = req.body
-    console.log(santriName)
-    const santri = create({
-      santriName:santriName
-    })
+    const {santriName, kelasId} = req.body
+    const santri = create(santriName, kelasId)
     response(res, 200, '200', santri)
   }catch(err){
     next(err)
@@ -35,8 +32,8 @@ const createSantri = async(req, res, next) => {
 const updateSantri = async(req, res, next) => {
   try{
     const santriId = req.params.id
-    const {santriName} = req.body
-    const result = await update(santriId, santriName)
+    const {santriName, kelasId} = req.body
+    const result = await update(santriId, santriName, kelasId)
     response(res, 200, 'success', result)
   }catch(err){
     next(err)

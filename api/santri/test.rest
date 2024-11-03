@@ -1,0 +1,24 @@
+@baseurl = http://localhost:3000
+GET {{baseurl}}/api/santri HTTP/1.1
+
+###
+POST {{baseurl}}/api/santri HTTP/1.1
+Content-Type: application/json
+
+{
+  "santriName" : "Fahmi",
+  "kelasId" : 1
+}
+###
+GET {{baseurl}}/api/santri/1 HTTP/1.1
+
+###
+PUT {{baseurl}}/api/santri/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "santriName": "Fahmi",
+  "kelasId" : 2
+}
+###
+DELETE {{baseurl}}/api/santri/1 HTTP/1.1

@@ -23,7 +23,6 @@ const getGuruById = async(req, res, next) =>{
 const createGuru = async(req, res, next) => {
   try{
     const {guruName} = req.body
-    console.log(guruName)
     const guru = create({
       guruName:guruName
     })
