@@ -27,8 +27,6 @@ const update = async (pelajaranId, pelajaranData, kelasId) => {
 }
 const remove = async (pelajaranId) => {
     const pelajaran = await knex('pelajaran').where('id', pelajaranId).del()
-    console.log(pelajaran)
-    console.log(pelajaran==0)
     if(pelajaran !== 0){
         return true
     }else{

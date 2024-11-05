@@ -15,7 +15,7 @@ const getKelasById = async(req, res, next) =>{
   try{
     const kelasId= req.params.getById
     const kelas = await getById(kelasId)
-    response(res, 200, 'success', kelas)
+    response(res, 200, "success", kelas)
   }catch(err){
     next(err)
   }
@@ -24,7 +24,7 @@ const createKelas = async(req, res, next) => {
   try{
     const {kelasName} = req.body
     const kelas = create(kelasName)
-    response(res, 200, '200', kelas)
+    response(res, 201, '', kelas)
   }catch(err){
     next(err)
   }

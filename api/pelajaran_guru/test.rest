@@ -6,9 +6,9 @@ POST {{baseurl}}/api/pelajaran-guru HTTP/1.1
 Content-Type: application/json
 
 {
-  "guruId": 1,
+  "guruId": 3,
   "pelajaranId" : 9,
-  "kelasId": 1
+  "kelasId": 2
 }
 
 ###

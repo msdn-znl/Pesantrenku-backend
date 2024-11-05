@@ -4,10 +4,28 @@ const knex = require(knexPath)
 
 const getAll = async () => {
     const santri = await knex('santri')
+    .select(
+        'santri.id as id',
+        'santri.santriName',
+        'kelas.id as kelas_id',
+        'kelas.kelasName as kelas_name',
+        'santri.createdAt',
+        'santri.updatedAt'
+    )
+    .leftJoin('kelas', 'santri.kelas_id', 'kelas.id')
     return santri
 }
 const getById = async (santriId) => {
-    const santri = await knex('santri').where('id', santriId)
+    const santri = await knex('santri').select(
+    'santri.id as id',
+    'santri.santriName',
+    'kelas.id as kelas_id',
+    'kelas.kelasName as kelas_name',
+    'santri.createdAt',
+    'santri.updatedAt'
+    )
+    .leftJoin('kelas', 'santri.kelas_id', 'kelas.id')
+    .where('id', santriId)
     return santri
 }
 const create = async (santriName, kelasId) => {

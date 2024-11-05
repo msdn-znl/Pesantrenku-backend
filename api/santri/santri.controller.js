@@ -1,4 +1,5 @@
 const {getAll, getById, create, update, remove} = require('./santri.service')
+// const kelasService = require('../kelas/kelas.service') 
 const response = (res, statusCode, message, data) => {
   res.status(statusCode).json({message, data})
 }

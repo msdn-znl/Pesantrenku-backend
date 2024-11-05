@@ -1,5 +1,5 @@
 // Update with your config settings.
-const {host,dbUsername,dbPassword,database} = require('../config/index')
+const {host,dbUsername,dbPassword,database} = require('../config/environment')
 /**
  * @type { Object.<string, import("knex").Knex.Config> }
  */
