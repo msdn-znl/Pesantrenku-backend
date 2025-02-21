@@ -7,6 +7,7 @@ exports.up = function(knex) {
     t.increments('id').primary()
     t.string('username',50).notNullable()
     t.string('password').notNullable()
+    t.enu('roles', ['admin', 'guru', 'santri']).notNullable()
     t.timestamps(true, true, true)
   }
     return knex.schema.hasTable('users').then(function (exists){
