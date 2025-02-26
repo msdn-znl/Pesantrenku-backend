@@ -1,8 +1,9 @@
 //initialize the module
 require('dotenv').config()
+const config = require('./config/index.js').app
 const express = require('express')
 const app = express()
-const port = process.env.PORT || 3000
+const port = config.port || 3000
 
 //middleware
 require('./middleware/passport.js')
@@ -63,5 +64,5 @@ app.use((error, req, res, next)=>{
 
 //start the app
 app.listen(port, ()=>{
-    console.log(`App Listen on Port ${port}`)
+    console.log(`App Listen on Port ${port} in the ${config.env} environnment`)
 })

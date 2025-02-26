@@ -1,8 +1,7 @@
 const router = require('express').Router()
 const passport = require('../../middleware/passport')
 const jwt = require('jsonwebtoken')
-const path = require('path')
-require('dotenv').config({path: path.join(__dirname, '../../.env')})
+const config = require('../../config/index').jwt
 
 //login
 router.post('/login', async(req, res, next)=> {
@@ -27,8 +26,8 @@ router.post('/login', async(req, res, next)=> {
             }
             
             const body = {id: user.id, username: user.username, role: user.roles}
-            const accessToken = jwt.sign({user: body}, process.env.ACCESS_SECRET, {expiresIn: '15m' /** 15 menit */})
-            const refreshToken = jwt.sign({user: body}, process.env.REFRESH_SECRET, {expiresIn: '1d' /** 1 hari */})
+            const accessToken = jwt.sign({user: body}, config.access, {expiresIn: '15m' /** 15 menit */})
+            const refreshToken = jwt.sign({user: body}, config.refresh, {expiresIn: '1d' /** 1 hari */})
             //mengembalikan  token jwt
             // return res.status(200).json({token})
 
@@ -79,11 +78,11 @@ router.post('/refresh', async(req, res, next) => {
       return res.status(401).json({status: 'failed', message: 'no token provided, please login'})
     }
     //cek apakah refresh token valid
-    jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, user) => {
+    jwt.verify(refreshToken, config.refresh, (err, user) => {
       if (err) return res.status(403).json({status: 'failed', message: 'invalid refresh token'})
       //generate access token baru
       const body = {id: user.id, username: user.username, role: user.roles}
-      const accessToken = jwt.sign(body, process.env.ACCESS_SECRET, {expiresIn: '15m'})
+      const accessToken = jwt.sign(body, config.access, {expiresIn: '15m'})
       //mengirim access token ke cookie client
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
