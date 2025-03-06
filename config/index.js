@@ -1,4 +1,4 @@
-
+require('dotenv').config({path: '../.env'})
 const requiredEnvVars = ['PORT', 'ENVIRONMENT', 'HOST', 'DB_USERNAME', 'DB_PASSWORD', 'DATABASE', 'ACCESS_SECRET', 'REFRESH_SECRET'];
 
 requiredEnvVars.forEach((varName) => {
