@@ -1,3 +1,4 @@
+
 const {getAll, getById, create, update, remove} = require('../base.service')
 
 const tableName = 'guru'

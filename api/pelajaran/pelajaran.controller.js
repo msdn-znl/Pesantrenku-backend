@@ -1,3 +1,4 @@
+
 const {getAll, getById, create, update, remove} = require('../base.service')
 
 const tableName = 'pelajaran'
@@ -83,4 +84,5 @@ module.exports = {
     createPelajaran,
     updatePelajaran,
     removePelajaran
+
 }

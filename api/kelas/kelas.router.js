@@ -1,4 +1,5 @@
 const router = require('express').Router()
+
 const {getAllKelas, getKelasById, createKelas, updateKelas, removeKelas}= require('./kelas.controller.js')
 
 router.get('/', getAllKelas)
@@ -9,3 +10,4 @@ router.route('/:id')
 router.delete('/:id/remove', removeKelas)
 
 module.exports=router
+
