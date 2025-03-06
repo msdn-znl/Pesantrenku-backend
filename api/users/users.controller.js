@@ -1,13 +1,23 @@
-const {getAll, getById, create, update, remove} = require('./users.service')
+const bcrypt = require('bcrypt')
+const {getByUsername, update} = require('./users.service')
+const {getAll, getById, create, remove} = require('../base.service')
+// eslint-disable-next-line no-unused-vars
+const {BadRequestError, NotFoundError, UnauthorizedError} = require('../../exception/error')
+// const response = (res, statusCode, message, data) => {
+//     res.status(statusCode).json({message, data})
+// }
 
-const response = (res, statusCode, message, data) => {
-    res.status(statusCode).json({message, data})
-}
+//nama tabel
+const tableName = 'users'
+const columnName = 'id'
 
 const getAllUsers = async (req, res, next) => {
     try{
-        const users = await getAll()
-        response(res, 200, 'success', users)
+        const users = await getAll(tableName)
+        return res.status(200).json({
+            status: 'success',
+            data: users
+        })
     }catch(err){
         next(err)
     }
@@ -15,20 +25,42 @@ const getAllUsers = async (req, res, next) => {
 const getUserById = async(req, res, next) => {
     try{
         const userId = req.params.id
-        const user = await getById(userId)
-        response(res, 200, 'success', user)
+        const user = await getById(tableName, columnName, userId)
+        return res.status(200).json({
+            status: 'success',
+            data: user
+        })
     }catch(err){
         next(err)
     }
 }
 const createUser = async(req, res, next) => {
     try{
-        const {username, password} = req.body
-        const user = await create({
+        const {username, password, role} = req.body
+        const isUserExist = await getByUsername(username)
+        if (isUserExist){
+            return res.status(409).json({
+                status: 'fail',
+                message: 'username already in use'
+            })
+        }
+        const hashPass = await bcrypt.hashSync(password, 10)
+        const validRoles = ['admin', 'guru', 'santri']
+        if (!validRoles.includes(role)){
+            return res.status(400).json({
+                status: 'failed',
+                message:'invalid roles'
+            })
+        }
+        const user = await create(tableName, {
             username: username,
-            password: password
+            password: hashPass,
+            roles: role
         })
-        response(res, 200, 'success', user)
+        return res.status(201).json({
+            status:'success',
+            data: user
+        })
     }catch(err){
         next(err)
     }
@@ -37,11 +69,22 @@ const updateUser = async(req, res, next) => {
     try{
         const userId = req.params.id
         const {username, password} = req.body
+        const isUserExist = await getByUsername(username)
+        if (isUserExist){
+            return res.status(409).json({
+                status: 'fail',
+                message: 'username already in use'
+            })
+        }
+        const hashPass = await bcrypt.hashSync(password, 10)
         const user = await update(userId, {
             username: username,
-            password: password
+            password: hashPass
         })
-        response(res, 200, 'success', user)
+        return res.status(200).json({
+            status: 'success',
+            data: user
+        })
     }catch(err){
         next(err)
     }
@@ -49,11 +92,15 @@ const updateUser = async(req, res, next) => {
 const removeUser = async (req, res, next) => {
     try{
         const userId = req.params.id
-        const result = await remove(userId)
+        const result = await remove(tableName, columnName, userId)
         if(result){
-            response(res, 200, "success")
+            return res.status(200).json({
+                status:'success'
+            })
         }else{
-            response(res,404,'failed')
+            return res.status(404).json({
+                status:'failed'
+            })
         }
     }catch(err){
         next(err)

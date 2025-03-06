@@ -1,4 +1,5 @@
 const router = require('express').Router()
+
 const {getAllPelajaran, getPelajaranById, createPelajaran, updatePelajaran, removePelajaran} = require('./pelajaran.controller')
 
 router.get('/', getAllPelajaran)
@@ -8,4 +9,6 @@ router.route('/:id')
     .put(updatePelajaran)
 router.delete('/:id/remove', removePelajaran)
 
+
 module.exports = router
+

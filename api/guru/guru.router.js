@@ -2,10 +2,11 @@ const router = require('express').Router()
 const {getAllGuru, getGuruById, createGuru, updateGuru, removeGuru} = require('./guru.controller')
 
 router.get('/', getAllGuru)
-    .post('/', createGuru)
+
+    .post('/create', createGuru)
 router.route('/:id')
     .get(getGuruById)
     .put(updateGuru)
-router.delete('/:id', removeGuru)
+router.delete('/:id/remove', removeGuru)
 
 module.exports = router

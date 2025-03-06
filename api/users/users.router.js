@@ -5,7 +5,7 @@ router.get('/', getAllUsers)
     .post('/create', createUser)
 router.route('/:id')
     .get(getUserById)
-    .post(updateUser)
+    .put(updateUser)
 router.delete('/:id/remove', removeUser)
 
 module.exports = router

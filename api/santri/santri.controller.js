@@ -1,65 +1,103 @@
-const {getAll, getById, create, update, remove} = require('./santri.service')
-const response = (res, statusCode, message, data) => {
-  res.status(statusCode).json({message, data})
+
+const {getAll, getById, create, update, remove} = require('../base.service')
+
+const tableName = 'santri'
+const columnName = 'id'
+
+const getAllSantri = async (req, res, next) => {
+    try {
+        const santri = await getAll(tableName)
+        return res.status(200).json({
+            status: 'success',
+            data: santri
+        })
+    } catch (error) {
+        next(error)
+    }
 }
 
-const getAllSantri = async(req, res, next) => {
-  try{
-    const santri = await getAll()
-    response(res, 200, 'success', santri)
-  }catch(err){
-    next(err)
-  }
-}
-const getSantriById = async(req, res, next) =>{
-  try{
-    const santriId= req.params.id
-    const result = await getById(santriId)
-    response(res, 200, 'success', result)
-  }catch(err){
-    next(err)
-  }
-}
-const createSantri = async(req, res, next) => {
-  try{
-    const {santriName} = req.body
-    console.log(santriName)
-    const santri = create({
-      santriName:santriName
-    })
-    response(res, 200, '200', santri)
-  }catch(err){
-    next(err)
-  }
-}
-const updateSantri = async(req, res, next) => {
-  try{
-    const santriId = req.params.id
-    const {santriName} = req.body
-    const result = await update(santriId, santriName)
-    response(res, 200, 'success', result)
-  }catch(err){
-    next(err)
-  }
-}
-const removeSantri = async(req, res, next) => {
-  try{
-    const santriId = req.params.id
-    const result = await remove(santriId)
-    if(result){
-      response(res, 200, "success")
-    }else{
-      response(res,404,'failed')
+const getSantriById = async (req, res, next) => {
+    try {
+        const id = req.params.id
+        const santri = await getById(tableName, columnName, id)
+        return res.status(200).json({
+            status: 'success',
+            data: santri
+        })
+    } catch (error) {
+        next(error)
     }
-  }catch(err){
-    next(err)
-  }
 }
+
+const createSantri = async (req, res, next) => {
+    try {
+        const {nama, nomorIndukSantri, tahunMasuk, tahunKeluar, nomorTelepon, status, kelas, tempatLahir, tanggalLahir, kamar, usersId} = req.body
+        const created = await create(tableName, {
+            nama: nama,
+            nomor_induk_santri: nomorIndukSantri,
+            tahun_masuk: tahunMasuk,
+            tahun_keluar: tahunKeluar,
+            nomor_telepon: nomorTelepon,
+            status: status,
+            kelas: kelas,
+            tempat_lahir: tempatLahir,
+            tanggal_lahir: tanggalLahir,
+            kamar: kamar,
+            users_id: usersId
+        })
+        return res.status(201).json({
+            status: 'success',
+            data: created
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const updateSantri = async (req, res, next) => {
+    try {
+        const id = req.params.id
+        const {nama, nomorIndukSantri, tahunMasuk, tahunKeluar, nomorTelepon, status, kelas, tempatLahir, tanggalLahir, kamar, usersId} = req.body
+        const updated = await update(tableName, columnName, id, {
+            nama: nama,
+            nomor_induk_santri: nomorIndukSantri,
+            tahun_masuk: tahunMasuk,
+            tahun_keluar: tahunKeluar,
+            nomor_telepon: nomorTelepon,
+            status: status,
+            kelas: kelas,
+            tempat_lahir: tempatLahir,
+            tanggal_lahir: tanggalLahir,
+            kamar: kamar,
+            users_id: usersId
+        })
+        return res.status(200).json({
+            status: 'success',
+            data: updated
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const removeSantri = async (req, res, next) => {
+    try {
+        const id = req.params.id
+        const deleted = await remove(tableName, columnName, id)
+        return res.status(200).json({
+            status: 'success',
+            deleted_row : deleted
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
 
 module.exports = {
-  getAllSantri,
-  getSantriById,
-  createSantri,
-  updateSantri,
-  removeSantri
+    getAllSantri,
+    getSantriById,
+    createSantri,
+    updateSantri,
+    removeSantri
 }
