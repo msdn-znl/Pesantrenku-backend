@@ -1,24 +1,29 @@
-const {getByColumn, getDataJoinTwoTable, create, update, remove, withTransaction} = require('../base.service')
+const { getDataJoin, create, update, remove, getData} = require('../base.service')
+const path = require('path')
+const knexPath = path.join(__dirname, '..', '..', 'db', 'knex.js')
+const knex = require(knexPath)
 
 const tableName = 'kehadiran'
 const columnKehadiranId = 'id'
 
 const getAllKehadiran = async (req, res, next) => {
     try {
-        const kehadiranIds = await getByColumn(tableName, columnKehadiranId)
+        const kehadiranIds = await getData(tableName, columnKehadiranId)
         const result = await Promise.all(
             kehadiranIds.map( async (kehadiran) => {
                 const kehadiranId = kehadiran.id
-                const dataGuru = await getDataJoinTwoTable('kehadiran_guru as kg', 'guru as g', 
-                    {mainTableColumn: 'kg.guru_id', operator: '=', joinTableColumn: 'g.id', 
-                        selectFields: ['kg.kehadiran_id','g.id as guru_id', 'g.nama as guru_nama', 'kg.status'], constraint: {'kg.kehadiran_id': kehadiranId}
-                    }
+                const dataGuru = await getDataJoin('Kehadiran_guru as kg',
+                    [{table: 'guru as g', firstKey: 'kg.guru_id', operator: '=', secondKey: 'g.id'}],
+                    [ 'kg.kehadiran_id', 'g.id as guru_id', 'g.nama as guru_nama', 'kg.status'],
+                    {'kg.kehadiran_id': kehadiranId}
                 )
-                const dataSantri = await getDataJoinTwoTable('kehadiran_santri as ks', 'santri as s',
-                    {mainTableColumn: 'ks.santri_id', operator: '=', joinTableColumn: 's.id', 
-                        selectFields: ['ks.kehadiran_id', 's.id as santri_id', 's.nama as santri_nama', 'ks.status'], constraint: {'ks.kehadiran_id': kehadiranId}
-                    }
+                
+                const dataSantri = await getDataJoin('kehadiran_santri as ks',
+                    [{table: 'santri as s', firstKey: 'ks.santri_id', operator: '=', secondKey: 's.id'}],
+                    ['ks.kehadiran_id', 's.id as santri_id', 's.nama as santri_nama', 'ks.status'],
+                    {'ks.kehadiran_id': kehadiranId}
                 )
+                
                 return {
                     id: kehadiranId,
                     guru: dataGuru ? {
@@ -46,14 +51,19 @@ const getAllKehadiran = async (req, res, next) => {
 const getKehadiranById = async (req, res, next) => {
     try {
         const id = req.params.id
-        const dataGuru = await getDataJoinTwoTable('kehadiran_guru as kg', 'guru as g', 
-            {mainTableColumn: 'kg.guru_id', operator: '=', joinTableColumn: 'g.id', 
-                selectFields: ['kg.kehadiran_id','g.id as guru_id', 'g.nama as guru_nama', 'kg.status'], constraint: {'kg.kehadiran_id': id}})
-        const dataSantri = await getDataJoinTwoTable('kehadiran_santri as ks', 'santri as s',
-            {mainTableColumn: 'ks.santri_id', operator: '=', joinTableColumn: 's.id', 
-                selectFields: ['ks.kehadiran_id', 's.id as santri_id', 's.nama as santri_nama', 'ks.status'], constraint: {'ks.kehadiran_id': id}
-            }
+        const dataGuru = await getDataJoin('kehadiran_guru as kg', 
+            [{table: 'guru as g', firstKey: 'kg.guru_id', operator: '=', secondKey: 'g.id'}], 
+            ['kg.kehadiran_id','g.id as guru_id', 'g.nama as guru_nama', 'kg.status'], 
+            {'kg.kehadiran_id': id}
         )
+        
+        const dataSantri = await getDataJoin(
+            'kehadiran_santri as ks',
+            [{table: 'santri as s', firstKey: 'ks.santri_id', operator: '=', secondKey: 's.id'}],
+            ['ks.kehadiran_id', 's.id as santri_id', 's.nama as santri_nama', 'ks.status'],
+            {'ks.kehadiran_id': id}
+        )
+        
         const result = {
             id: id,
             guru: dataGuru ? {
@@ -78,35 +88,32 @@ const getKehadiranById = async (req, res, next) => {
 
 const createKehadiran = async (req, res, next) => {
     try {
-        const {guru, santri} = req.body
+        const {pertemuan_id, guru, santri} = req.body
         
         // Input validation
-        if (!guru || !santri || !Array.isArray(santri)) {
+        if (!pertemuan_id || !guru || !santri || !Array.isArray(santri)) {
             return res.status(400).json({
                 status: 'error',
                 message: 'Invalid input data'
             })
         }
 
-        // Create kehadiran records within a transaction
-        const result = await withTransaction(async (trx) => {
-            const kehadiranGuru = await create('kehadiran_guru', {
+        const result = await knex.transaction(async (trx) => {
+            const kehadiranIds = await create(tableName, {pertemuan_id: pertemuan_id}, trx)
+            const kehadiranId = kehadiranIds[0]
+
+            const createKehadiranGuru = await create('kehadiran_guru', {
+                kehadiran_id: kehadiranId,
                 guru_id: guru.id,
                 status: guru.status
             }, trx)
-
-            const createdSantriRecords = []
-            for (const element of santri) {
-                const record = await create('kehadiran_santri', {
-                    santri_id: element.id,
-                    status: element.status
-                }, trx)
-                createdSantriRecords.push(record)
-            }
+            const santriData = santri.map((s) => ({ ...s, kehadiran_id: kehadiranId }))
+            const createKehadiranSantri = await create('kehadiran_santri', santriData, trx)
 
             return {
-                kehadiran_guru: kehadiranGuru,
-                kehadiran_santri: createdSantriRecords
+                kehadiranId,
+                kehadiran_guru: createKehadiranGuru,
+                kehadiran_santri: createKehadiranSantri
             }
         })
 
@@ -122,10 +129,10 @@ const createKehadiran = async (req, res, next) => {
 const updateKehadiran = async (req, res, next) => {
     try {
         const kehadiranId = req.params.id
-        const {guru, santri} = req.body
+        const {pertemuan_id, guru, santri} = req.body
         
         // Input validation
-        if (!guru || !santri || !Array.isArray(santri)) {
+        if (!pertemuan_id || !guru || !santri || !Array.isArray(santri)) {
             return res.status(400).json({
                 status: 'error',
                 message: 'Invalid input data'
@@ -133,20 +140,23 @@ const updateKehadiran = async (req, res, next) => {
         }
 
         // Update kehadiran records within a transaction
-        const result = await withTransaction(async (trx) => {
+        const result = await knex.transaction(async (trx) => {
             const updateKehadiranGuru = await update('kehadiran_guru', 'kehadiran_id', kehadiranId, {
                 guru_id: guru.id,
                 status: guru.status
             }, trx)
 
-            const updatedSantriRecords = []
-            for (const element of santri) {
-                const record = await update('kehadiran_santri', 'kehadiran_id', kehadiranId, {
-                    santri_id: element.id,
-                    status: element.status
-                }, trx)
-                updatedSantriRecords.push(record)
-            }
+            const santriUpdates = santri.map((s) =>
+                update(
+                    'kehadiran_santri',
+                    'kehadiran_id',
+                    kehadiranId,
+                    { santri_id: s.id, status: s.status },
+                    trx
+                )
+            )
+
+            const updatedSantriRecords = await Promise.all(santriUpdates)
 
             return {
                 kehadiran_guru: updateKehadiranGuru,

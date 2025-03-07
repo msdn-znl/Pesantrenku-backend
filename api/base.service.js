@@ -4,6 +4,11 @@ const knex = require(knexPath)
 const errorPath = path.join(__dirname,'..','exception','error.js')
 const {DatabaseError} = require(errorPath)
 
+/**
+ * Mengambil semua data dari tabel
+ * @param {string} tableName - Nama tabel yang akan diambil datanya
+ * @returns {Promise<Object[]>} -Data hasil query
+ */
 const getAll = async (tableName) => {
     try{
         const entry = await knex(tableName)
@@ -14,6 +19,13 @@ const getAll = async (tableName) => {
     }
 }
 
+/**
+ * Mengambil data berdasarkan ID
+ * @param {string} tableName - 
+ * @param {string} columnName 
+ * @param {string} id 
+ * @returns 
+ */
 const getById = async (tableName, columnName, id) => {
     try{
         const entry = await knex(tableName).where(columnName, id)
@@ -24,9 +36,17 @@ const getById = async (tableName, columnName, id) => {
     }
 }
 
-const create = async (tableName, data) => {
+/**
+ * Menambahkan data ke dalam Tabel
+ * @param {string} tableName - Nama Tabel yang akan dimasukkan data 
+ * @param {<Object{}>} data - Data yang dimasukkan ke database, dalam format key-pair "nama kolom":"data"
+ * @param {*} trx - database transaction support(opsional)
+ * @returns {Promise<Object[]>} - Data hasil query
+ */
+const create = async (tableName, data, trx = null) => {
     try{
-        const entry = await knex(tableName).insert(data)
+        const query = trx ? trx(tableName) : knex(tableName)
+        const entry = await query.insert(data)
         return entry
     }catch(err){
         console.error('Database Error:',err)
@@ -34,9 +54,19 @@ const create = async (tableName, data) => {
     }
 }
 
-const update = async (tableName, columnName, id, data) => {
+/**
+ * Mengedit data yang ada di database berdasarkan ID
+ * @param {*} tableName - Nama tabel yang akan diedit datanya
+ * @param {string} columnName - Nama Kolom id di tabel
+ * @param {string} id -  ID dari data yang akan diupdate 
+ * @param {<object{}>} data - Data yang diedit ke database, dalam format key-pair "nama kolom":"data"
+ * @param {*} trx - database transaction support(opsional)
+ * @returns {Promise<Object[]>} - Data hasil query 
+ */
+const update = async (tableName, columnName, id, data, trx = null) => {
     try{
-        const entry = await knex(tableName).where(columnName, id).update({
+        const query = trx ? trx(tableName) : knex(tableName)
+        const entry = await query.where(columnName, id).update({
             ...data,
             updatedAt: knex.fn.now(6)
         })
@@ -47,10 +77,19 @@ const update = async (tableName, columnName, id, data) => {
     }
 }
 
-const remove = async (tableName, columnName, id) => {
+/**
+ * Menghapus data di database berdasarkan
+ * @param {string} tableName - Nama tabel ayng akan dihapus datanya
+ * @param {string} columnName - Nama Kolom id di tabel
+ * @param {string} id -  ID dari data yang akan diupdate 
+ * @param {*} trx - database transaction support(opsional)
+ * @returns {boolean} - Data hasil query
+ */
+const remove = async (tableName, columnName, id, trx = null) => {
     try{
-        const entry = await knex(tableName).where(columnName, id).del()
-        if(!entry==0){
+        const query = trx ? trx(tableName) : knex(tableName)
+        const entry = await query.where(columnName, id).del()
+        if(!entry>0){
             return true
         }else{
             return false
@@ -61,9 +100,22 @@ const remove = async (tableName, columnName, id) => {
     }
 }
 
-const getByColumn = async (tableName, columnName) => {
+/**
+ * Ambil data dari tabel dengan kondisi yang bisa ditentukan
+ * @param {string} tableName - Nama tabel yang diambil datanya
+ * @param {Array<string>} columnName - Array dari nama kolom yang ada di tabel
+ * @param {Object} constraint - Filter untuk where condition
+ * @returns {Promise<Object[]>} - Data hasil query
+ */
+const getData = async (tableName, columnName, constraint) => {
     try {
-        const entry = await knex(tableName).select(columnName)
+        const query = knex(tableName).select(columnName)
+        query.modify(q => {
+            if (Object.keys(constraint).length>0) {
+                q.where(constraint)
+            }
+        })
+        const entry = await query
         return entry
     } catch (error) {
         console.error('Database Error:',error)
@@ -71,31 +123,31 @@ const getByColumn = async (tableName, columnName) => {
     }
 }
 
-const getData = async (tableName, columnName, constraint) => {
+/**
+ * Ambil data dengan join antar tabel
+ * @param {string} mainTable - Nama tabel utama
+ * @param {Array<{table: string, firstKey: string, operator?: string, secondKey: string}>} joins - Array join table
+ * @param {string[]} selects - Kolom yang akan diambil
+ * @param {Object} constraint - Filter untuk where condition
+ * @returns {Promise<Object[]>} - Data hasil query
+ */
+const getDataJoin = async (mainTable, joins =[], selects =[], constraint = {}) => {
     try {
-        const data = await knex(tableName).select(columnName).where(constraint)
-        return data
-    } catch (error) {
-        console.error('Database Error:',error)
-        throw new DatabaseError('Failed to retrieve data from database')
-    }
-}
-
-const getDataJoinTwoTable = async (mainTable, joinTable, {
-    mainTableColumn, 
-    operator = '=', 
-    joinTableColumn, 
-    constraint = null, 
-    selectFields = []}) => {
-    try {
-        const entry = await knex(mainTable)
-            .join(joinTable, mainTableColumn, operator, joinTableColumn)
-            .select(selectFields).modify(query => {
-                if (constraint) {
-                    query.where(constraint)
-                }
-            })
-        return entry``
+        let query = knex(mainTable)
+        joins.forEach(join => {
+            if (!join.table || !join.firstKey || !join.secondKey) {
+                throw new Error('Parameter join memerlukan table, firstKey, dan secondKey dalam format object')
+            }
+            query = query.join(join.table, join.firstKey, join.operator, join.secondKey)
+        })
+        query = query.select(selects.length ? selects : '*')
+        query.modify(q => {
+            if (Object.keys(constraint).length>0) {
+                q.where(constraint)
+            }
+        })
+        const entry = await query
+        return entry
     } catch (error) {
         console.error('Database Error:',error)
         throw new DatabaseError('Failed to retrieve data from database' + error.message)
@@ -105,9 +157,8 @@ const getDataJoinTwoTable = async (mainTable, joinTable, {
 module.exports = {
     getAll,
     getById,
-    getByColumn,
     getData,
-    getDataJoinTwoTable,
+    getDataJoin,
     create,
     update,
     remove
